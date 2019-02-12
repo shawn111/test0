@@ -33,6 +33,9 @@ pipeline {
                     sh "sudo cp -rfv .avocado-vt-cfg/* /usr/share/avocado-plugins-vt/shared/cfg/guest-os/"
                     sh "sudo avocado vt-bootstrap"
 
+                    // list Linux.ESCore.devel.x86_64 tests
+                    sh "sudo avocado list --vt-type qemu --vt-guest-os Linux.ESCore.devel.x86_64 --paginator off --verbose"
+
                     env.VER = sh (
                         returnStdout: true,
                         script: 'isoinfo -d -i "$SOURCEFN" | awk -F": " \'/Volume id/{print $2}\''
