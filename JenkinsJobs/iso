@@ -54,6 +54,7 @@ pipeline {
             }
         }
         stage("Build") {
+            when { branch 'master' }
             steps {
                 script {
                     echo "needwrite ${env.NEEDWRITE}"
@@ -65,6 +66,7 @@ pipeline {
             }
         }
         stage('Deploy') {
+            when { branch 'master' }
             steps {
                 script {
                     if (env.NEEDWRITE == "true") {
