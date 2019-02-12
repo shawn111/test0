@@ -21,6 +21,18 @@ pipeline {
         stage("Prepare") {
             steps {
                 script {
+                    // copy tests into guest-os-escore.cfg
+                    // envsubst for env variable replacement
+                    sh "envsubst < escore-test-cfg/tests/iso.cfg >> .avocado-vt-cfg/Linux/ESCore/devel/x86_64.cfg"
+                    sh "envsubst < escore-test-cfg/tests/kernel.cfg >> .avocado-vt-cfg/Linux/ESCore/devel/x86_64.cfg"
+
+                    // cat escore-cfg for debug
+                    sh "cat .avocado-vt-cfg/Linux/ESCore/devel/x86_64.cfg"
+
+                    // to generate guest-os.cfg
+                    sh "sudo cp -rfv .avocado-vt-cfg/* /usr/share/avocado-plugins-vt/shared/cfg/guest-os/"
+                    sh "sudo avocado vt-bootstrap"
+
                     env.VER = sh (
                         returnStdout: true,
                         script: 'isoinfo -d -i "$SOURCEFN" | awk -F": " \'/Volume id/{print $2}\''
