@@ -1,4 +1,7 @@
-// Jenkins easystack iso job
+// Jenkins easystack avocado-vt iso level pipeline config
+//
+//  - https://jenkins.io/doc/book/pipeline/
+//
 
 pipeline {
     agent any
