@@ -1,0 +1,84 @@
+// Jenkins easystack iso job
+
+pipeline {
+    agent any
+    parameters {
+	booleanParam(defaultValue: false, name: 'overwrite', description: '')
+        string(
+            name: 'iso',
+            defaultValue: "/srv/avocado/data/avocado-vt/isos/linux/escore.iso",
+            description: 'iso path')
+    }
+    environment {
+        TARGETFN = "/srv/avocado/data/avocado-vt/isos/linux/escore.iso"
+        SOURCEFN = "${params.iso}"
+        VPATH = """${sh(
+                returnStdout: true,
+                script: 'echo $PATH'
+            )}"""
+    }
+    stages {
+        stage("Prepare") {
+            steps {
+                script {
+                    env.VER = sh (
+                        returnStdout: true,
+                        script: 'isoinfo -d -i "$SOURCEFN" | awk -F": " \'/Volume id/{print $2}\''
+                    ).trim()
+
+                    env.VERFN = "/srv/avocado/data/avocado-vt/isos/linux/${env.VER}.iso"
+                    ISOEXISTS = fileExists "${env.VERFN}"
+
+                    // env.TMD5SUM = sh (
+                    //     returnStdout: true,
+                    //     script: 'md5sum $TARGETFN'
+                    // ).trim()
+                    // env.SMD5SUM = sh (
+                    //     returnStdout: true,
+                    //     script: 'md5sum $SOURCEFN'
+                    // ).trim()
+
+                    // if (env.TMD5SUM != env.SMD5SUM) {
+                    // }
+
+                    if (!ISOEXISTS || params.overwrite) {
+                        sh "sudo cp $SOURCEFN $VERFN"
+                    }
+                    sh "sudo rm -rf $TARGETFN"
+                    sh "sudo ln -s $VERFN $TARGETFN"
+
+                    EXISTS = fileExists "/srv/avocado/data/avocado-vt/images/${env.VER}.qcow2"
+                    env.EXISTS = EXISTS
+                    env.NEEDWRITE = !EXISTS || params.overwrite
+                }
+            }
+        }
+        stage("Build") {
+            steps {
+                script {
+                    echo "needwrite ${env.NEEDWRITE}"
+                    if (env.NEEDWRITE == "true") {
+                        sh "sudo mv --force /srv/avocado/data/avocado-vt/images/escloud74-64.qcow2 /srv/avocado/data/avocado-vt/images/escloud74-64.qcow2.bak || echo 'file not found'"
+                        sh "sudo avocado run --show-job-log io-github-autotest-qemu.unattended_install.cdrom.extra_cdrom_ks.default_install.aio_native"
+                    }
+                }
+            }
+        }
+        stage('Deploy') {
+            steps {
+                script {
+                    if (env.NEEDWRITE == "true") {
+                        sh "sudo mv /srv/avocado/data/avocado-vt/images/escloud74-64.qcow2 /srv/avocado/data/avocado-vt/images/${env.VER}.qcow2"
+                        sh "sudo ln -s ${env.VER}.qcow2 /srv/avocado/data/avocado-vt/images/escloud74-64.qcow2"
+                        echo "Wrote"
+                    }else{
+                        echo "Don't overwrite"
+                    }
+                }
+                echo "${env.PATH}"
+                echo "${env.VER}"
+                echo "${params.overwrite}"
+            }
+	}
+    }
+}
