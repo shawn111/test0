@@ -87,8 +87,11 @@ pipeline {
                     }
 
                     // escore-devel.ks
-                    sh "mkdir -p /srv/avocado/data/avocado-vt/unattended"
-                    sh "envsubst < escore-test-cfg/escore.ks  >> /srv/avocado/data/avocado-vt/unattended/escore-devel.ks"
+                    // make sure group writable /usr/share/avocado-plugins-vt/shared/unattended/escore-devel.ks
+                    // touch /usr/share/avocado-plugins-vt/shared/unattended/escore-devel.ks
+                    // chgrp autotest /usr/share/avocado-plugins-vt/shared/unattended/escore-devel.ks
+                    // chmod 775 /usr/share/avocado-plugins-vt/shared/unattended/escore-devel.ks
+                    sh "envsubst < escore-test-cfg/escore.ks  >> /usr/share/avocado-plugins-vt/shared/unattended/escore-devel.ks"
                 }
             }
         }
