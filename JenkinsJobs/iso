@@ -93,12 +93,11 @@ pipeline {
             }
         }
         stage("Build") {
-            when { branch 'master' }
             steps {
                 script {
                     echo "needwrite ${env.NEEDWRITE}"
                     if (env.NEEDWRITE == "true") {
-                        sh "mv --force /srv/avocado/data/avocado-vt/images/escloud74-64.qcow2 /srv/avocado/data/avocado-vt/images/escloud74-64.qcow2.bak || echo 'file not found'"
+                        sh "mv --force /srv/avocado/data/avocado-vt/images/escore.qcow2 /srv/avocado/data/avocado-vt/images/escore.qcow2.bak || echo 'file not found'"
                         sh "sudo avocado run --show-job-log io-github-autotest-qemu.unattended_install.cdrom.extra_cdrom_ks.default_install.aio_native"
                     }
                 }
@@ -109,8 +108,8 @@ pipeline {
             steps {
                 script {
                     if (env.NEEDWRITE == "true") {
-                        sh "mv /srv/avocado/data/avocado-vt/images/escloud74-64.qcow2 /srv/avocado/data/avocado-vt/images/${env.VER}.qcow2"
-                        sh "ln -s ${env.VER}.qcow2 /srv/avocado/data/avocado-vt/images/escloud74-64.qcow2"
+                        sh "mv /srv/avocado/data/avocado-vt/images/escore.qcow2 /srv/avocado/data/avocado-vt/images/${env.VER}.qcow2"
+                        sh "ln -s ${env.VER}.qcow2 /srv/avocado/data/avocado-vt/images/escore.qcow2"
                         echo "Wrote"
                     }else{
                         echo "Don't overwrite"
