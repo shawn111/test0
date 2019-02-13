@@ -85,6 +85,10 @@ pipeline {
                         sh "guestunmount $TMPDIR"
                         sh "rm -rf $TMPDIR"
                     }
+
+                    // escore-devel.ks
+                    sh "mkdir -p /srv/avocado/data/avocado-vt/unattended"
+                    sh "envsubst < escore-test-cfg/escore.ks  >> /srv/avocado/data/avocado-vt/unattended/escore-devel.ks"
                 }
             }
         }
