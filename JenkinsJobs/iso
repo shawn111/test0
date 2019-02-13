@@ -68,6 +68,11 @@ pipeline {
                     EXISTS = fileExists "/srv/avocado/data/avocado-vt/images/${env.VER}.qcow2"
                     env.EXISTS = EXISTS
                     env.NEEDWRITE = !EXISTS || params.overwrite
+
+                    // copy for kernel & initrd
+                    if (env.NEEDWRITE == "true") {
+                        sh "TMPDIR=$(mktemp -d); sudo mount $VERFN $TMPDIR; sudo cp -f --update $TMPDIR/isolinux/* /srv/avocado/data/avocado-vt/isos/escore; sudo umount $TMPDIR; rm -rf $TMPDIR"
+                    }
                 }
             }
         }
