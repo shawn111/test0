@@ -98,7 +98,7 @@ pipeline {
                     echo "needwrite ${env.NEEDWRITE}"
                     if (env.NEEDWRITE == "true") {
                         sh "mv --force /srv/avocado/data/avocado-vt/images/escore.qcow2 /srv/avocado/data/avocado-vt/images/escore.qcow2.bak || echo 'file not found'"
-                        sh "sudo avocado run --show-job-log io-github-autotest-qemu.unattended_install.cdrom.extra_cdrom_ks.default_install.aio_native"
+                        sh "sudo avocado run --vt-guest-os Linux.ESCore.devel.x86_64 --show-job-log io-github-autotest-qemu.unattended_install.cdrom.extra_cdrom_ks.default_install.aio_native"
                     }
                 }
             }
