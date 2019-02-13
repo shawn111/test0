@@ -49,21 +49,21 @@ pipeline {
                     env.VERFN = "/srv/avocado/data/avocado-vt/isos/linux/${env.VER}.iso"
                     ISOEXISTS = fileExists "${env.VERFN}"
 
-                    // env.TMD5SUM = sh (
-                    //     returnStdout: true,
-                    //     script: 'md5sum $TARGETFN'
-                    // ).trim()
-                    // env.SMD5SUM = sh (
-                    //     returnStdout: true,
-                    //     script: 'md5sum $SOURCEFN'
-                    // ).trim()
+                    env.TMD5SUM = sh (
+                        returnStdout: true,
+                        script: 'md5sum $TARGETFN'
+                    ).trim()
+                    env.SMD5SUM = sh (
+                        returnStdout: true,
+                        script: 'md5sum $SOURCEFN'
+                    ).trim()
 
-                    // if (env.TMD5SUM != env.SMD5SUM) {
-                    // }
-
-                    if (!ISOEXISTS || params.overwrite) {
-                        sh "cp $SOURCEFN $VERFN"
+                    if (env.TMD5SUM != env.SMD5SUM) {
+                        if (!ISOEXISTS || params.overwrite) {
+                            sh "cp $SOURCEFN $VERFN"
+                        }
                     }
+
                     sh "rm -rf $TARGETFN"
                     sh "ln -s $VERFN $TARGETFN"
 
