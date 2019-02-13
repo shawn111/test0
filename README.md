@@ -23,11 +23,22 @@ Jenkins ->  New Item -> Pipeline
 /srv/jenkins
 
 ```
-chmod umask g+w /srv/avocado
-chmod 2775 /srv/avocado
-chown autotest:autotest -R /srv/avocado
-
+# make sure jenkins could write avocado output dir
 usermod -a -G autotest jenkins
+
+umask g+w /srv/avocado
+chmod g+w -R /srv/avocado
+mkdir -p /srv/avocado/data/avocado-vt/images
+mkdir -p /srv/avocado/data/avocado-vt/isos
+chown autotest:autotest -R /srv/avocado
+chmod 2775 /srv/avocado
+chmod 2775 /srv/avocado/data/avocado-vt
+chmod 2775 /srv/avocado/data/avocado-vt/images
+chmod 2775 /srv/avocado/data/avocado-vt/isos
+
+touch /usr/share/avocado-plugins-vt/shared/unattended/escore-devel.ks
+chgrp autotest /usr/share/avocado-plugins-vt/shared/unattended/escore-devel.ks
+chmod 775 /usr/share/avocado-plugins-vt/shared/unattended/escore-devel.ks
 ```
 
 /etc/avocado/avocado.conf
