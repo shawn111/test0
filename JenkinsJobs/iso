@@ -33,11 +33,13 @@ pipeline {
                     sh "cat .avocado-vt-cfg/Linux/ESCore/devel/x86_64.cfg"
 
                     // to generate guest-os.cfg
-                    sh "sudo cp -rfv .avocado-vt-cfg/* /usr/share/avocado-plugins-vt/shared/cfg/guest-os/"
-                    sh "sudo avocado vt-bootstrap"
+                    // FIXME
+                    // make sure /usr/share/avocado-plugins-vt/shared/cfg/guest-os/Linux group autotest could write
+                    sh "cp -rfv .avocado-vt-cfg/Linux/* /usr/share/avocado-plugins-vt/shared/cfg/guest-os/Linux"
+                    sh "avocado vt-bootstrap"
 
                     // list Linux.ESCore.devel.x86_64 tests
-                    sh "sudo avocado list --vt-type qemu --vt-guest-os Linux.ESCore.devel.x86_64 --paginator off --verbose"
+                    sh "avocado list --vt-type qemu --vt-guest-os Linux.ESCore.devel.x86_64 --paginator off --verbose"
 
                     env.VER = sh (
                         returnStdout: true,
@@ -60,18 +62,28 @@ pipeline {
                     // }
 
                     if (!ISOEXISTS || params.overwrite) {
-                        sh "sudo cp $SOURCEFN $VERFN"
+                        sh "cp $SOURCEFN $VERFN"
                     }
-                    sh "sudo rm -rf $TARGETFN"
-                    sh "sudo ln -s $VERFN $TARGETFN"
+                    sh "rm -rf $TARGETFN"
+                    sh "ln -s $VERFN $TARGETFN"
 
                     EXISTS = fileExists "/srv/avocado/data/avocado-vt/images/${env.VER}.qcow2"
                     env.EXISTS = EXISTS
                     env.NEEDWRITE = !EXISTS || params.overwrite
 
-                    // copy for kernel & initrd
                     if (env.NEEDWRITE == "true") {
-                        sh "TMPDIR=$(mktemp -d); sudo mount $VERFN $TMPDIR; sudo cp -f --update $TMPDIR/isolinux/* /srv/avocado/data/avocado-vt/isos/escore; sudo umount $TMPDIR; rm -rf $TMPDIR"
+                        // copy kernel/initrd
+                        // escore-test-cfg/tests/iso.cfg
+                        env.TMPDIR = sh (
+                           returnStdout: true,
+                           script: 'mktemp -d'
+                        ).trim()
+                        sh "ls -la $TMPDIR"
+                        sh "guestmount -o nonempty -a $SOURCEFN -r -i $TMPDIR"
+                        sh "mkdir -p /srv/avocado/data/avocado-vt/isos/isolinux"
+                        sh "cp -f --update $TMPDIR/isolinux/* /srv/avocado/data/avocado-vt/isos/isolinux"
+                        sh "guestunmount $TMPDIR"
+                        sh "rm -rf $TMPDIR"
                     }
                 }
             }
@@ -82,7 +94,7 @@ pipeline {
                 script {
                     echo "needwrite ${env.NEEDWRITE}"
                     if (env.NEEDWRITE == "true") {
-                        sh "sudo mv --force /srv/avocado/data/avocado-vt/images/escloud74-64.qcow2 /srv/avocado/data/avocado-vt/images/escloud74-64.qcow2.bak || echo 'file not found'"
+                        sh "mv --force /srv/avocado/data/avocado-vt/images/escloud74-64.qcow2 /srv/avocado/data/avocado-vt/images/escloud74-64.qcow2.bak || echo 'file not found'"
                         sh "sudo avocado run --show-job-log io-github-autotest-qemu.unattended_install.cdrom.extra_cdrom_ks.default_install.aio_native"
                     }
                 }
@@ -93,8 +105,8 @@ pipeline {
             steps {
                 script {
                     if (env.NEEDWRITE == "true") {
-                        sh "sudo mv /srv/avocado/data/avocado-vt/images/escloud74-64.qcow2 /srv/avocado/data/avocado-vt/images/${env.VER}.qcow2"
-                        sh "sudo ln -s ${env.VER}.qcow2 /srv/avocado/data/avocado-vt/images/escloud74-64.qcow2"
+                        sh "mv /srv/avocado/data/avocado-vt/images/escloud74-64.qcow2 /srv/avocado/data/avocado-vt/images/${env.VER}.qcow2"
+                        sh "ln -s ${env.VER}.qcow2 /srv/avocado/data/avocado-vt/images/escloud74-64.qcow2"
                         echo "Wrote"
                     }else{
                         echo "Don't overwrite"
